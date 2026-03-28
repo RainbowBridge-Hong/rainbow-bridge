@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#667eea">
+<title>彩虹桥 - 管理后台</title>
+<link rel="icon" href="favicon.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#667eea;--secondary:#764ba2;--danger:#ff4757;--success:#2ed573;--bg:#f5f6fa;--text:#2f3542;--border:#dfe4ea;--warning:#ffa502}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+/* Login */
+#login{position:fixed;inset:0;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:1000}
+#login.hide{display:none}
+.logo{font-size:64px;margin-bottom:16px}
+.title{font-size:28px;font-weight:700;color:#fff;margin-bottom:4px}
+.subtitle{font-size:13px;color:rgba(255,255,255,.8);margin-bottom:28px}
+.form{width:100%;max-width:320px}
+.input{width:100%;padding:16px 18px;border:none;border-radius:14px;font-size:15px;margin-bottom:14px;background:rgba(255,255,255,.95);outline:none}
+.btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;background:#fff;color:var(--primary)}
+/* Admin Layout */
+#admin{display:none;min-height:100vh}
+#admin.show{display:block}
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(102,126,234,.3)}
+.header-title{font-size:20px;font-weight:700}
+.header-right{display:flex;gap:12px;align-items:center}
+.header-btn{padding:8px 16px;border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;cursor:pointer;font-size:13px}
+.header-btn:hover{background:rgba(255,255,255,.3)}
+/* Nav */
+.nav{display:flex;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto}
+.nav-item{padding:14px 20px;border:none;background:transparent;color:#888;font-size:14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:all .2s}
+.nav-item:hover{color:var(--primary)}
+.nav-item.active{color:var(--primary);border-bottom-color:var(--primary)}
+/* Content */
+.content{padding:24px;max-width:1400px;margin:0 auto}
+/* Cards */
+.card{background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title .icon{font-size:20px}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.stat-value{font-size:32px;font-weight:700;color:var(--primary)}
+.stat-label{font-size:13px;color:#888;margin-top:4px}
+.stat.change{color:var(--success)}
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:800px}
+th,td{padding:14px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
+th{background:#f8f9fa;font-weight:600;color:#888;font-size:12px;text-transform:uppercase}
+tr:hover{background:#f8f9fa}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-success{background:#e8f5e9;color:#2ed573}
+.badge-danger{background:#ffebee;color:#ff4757}
+.badge-warning{background:#fff3e0;color:#ffa502}
+.badge-info{background:#e3f2fd;color:#667eea}
+/* Buttons */
+.btn-sm{padding:6px 12px;border:none;border-radius:6px;font-size:12px;cursor:pointer}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-secondary{background:#f1f2f6;color:var(--text)}
+.btn-sm:hover{opacity:.85}
+.actions{display:flex;gap:6px}
+/* Form */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#555}
+.form-input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
+.form-input:focus{border-color:var(--primary)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+/* Modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-content{background:#fff;border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px}
+.modal-buttons{display:flex;gap:10px;margin-top:20px}
+.modal-btn{flex:1;padding:14px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.modal-btn.primary{background:var(--primary);color:#fff}
+.modal-btn.secondary{background:#f1f2f6;color:var(--text)}
+/* Search */
+.search-bar{display:flex;gap:12px;margin-bottom:16px}
+.search-bar input{flex:1;padding:12px 16px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none}
+.search-bar input:focus{border-color:var(--primary)}
+/* Chat Preview */
+.chat-preview{max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:16px}
+.chat-msg{margin-bottom:12px;padding:10px 14px;border-radius:12px;font-size:14px}
+.chat-msg.from-other{background:#f1f2f6}
+.chat-msg.from-me{background:var(--primary);color:#fff;margin-left:40px}
+.chat-msg-time{font-size:11px;opacity:.6;margin-top:4px}
+/* Settings */
+.settings-group{margin-bottom:24px}
+.settings-group-title{font-size:15px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #f5f5f5}
+.settings-item:last-child{border-bottom:none}
+.settings-info{}
+.settings-name{font-size:14px;font-weight:500}
+.settings-desc{font-size:12px;color:#888;margin-top:2px}
+.toggle{width:48px;height:26px;background:#ddd;border-radius:13px;position:relative;cursor:pointer;border:none;transition:all .3s}
+.toggle.active{background:var(--success)}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:all .3s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.toggle.active::after{left:24px}
+/* Empty State */
+.empty{text-align:center;padding:40px;color:#888}
+.empty-icon{font-size:48px;margin-bottom:12px}
+/* Responsive */
+@media(max-width:768px){
+  .header{padding:12px 16px}
+  .content{padding:16px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  table{min-width:600px}
+}
+</style>
+</head>
+<body>
+<!-- Admin Login -->
+<div id="login">
+  <div class="logo">🔐</div>
+  <div class="title">彩虹桥管理后台</div>
+  <div class="subtitle">管理员登录入口</div>
+  <div class="form">
+    <input class="input" id="adminUser" placeholder="管理员账号">
+    <input class="input" id="adminPwd" type="password" placeholder="管理员密码" onkeydown="if(event.key==='Enter')adminLogin()">
+    <button class="btn" onclick="adminLogin()">登 录</button>
+    <div style="text-align:center;margin-top:16px">
+      <a href="index.html" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none">← 返回聊天</a>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin">
+  <div class="header">
+    <div class="header-title">🌈 彩虹桥管理后台</div>
+    <div class="header-right">
+      <span id="adminName" style="font-size:13px"></span>
+      <button class="header-btn" onclick="adminLogout()">退出</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-item active" onclick="showSection('dashboard')">📊 数据概览</button>
+    <button class="nav-item" onclick="showSection('users')">👥 用户管理</button>
+    <button class="nav-item" onclick="showSection('chats')">💬 聊天监管</button>
+    <button class="nav-item" onclick="showSection('settings')">⚙️ 系统设置</button>
+  </div>
+
+  <div class="content">
+    <!-- Dashboard -->
+    <div id="section-dashboard" class="section">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="statUsers">0</div>
+          <div class="stat-label">注册用户</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="statOnline">0</div>
+          <div class="stat-label">在线用户</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="statChats">0</div>
+          <div class="stat-label">聊天会话</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="statMessages">0</div>
+          <div class="stat-label">消息总数</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📈</span> 系统状态</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+          <div style="padding:16px;background:#e8f5e9;border-radius:10px">
+            <div style="font-size:24px">🟢</div>
+            <div style="font-size:14px;font-weight:600;margin-top:8px">系统正常</div>
+            <div style="font-size:12px;color:#888">所有服务运行中</div>
+          </div>
+          <div style="padding:16px;background:#e3f2fd;border-radius:10px">
+            <div style="font-size:24px">🔒</div>
+            <div style="font-size:14px;font-weight:600;margin-top:8px">安全模式</div>
+            <div style="font-size:12px;color:#888">数据加密存储</div>
+          </div>
+          <div style="padding:16px;background:#fff3e0;border-radius:10px">
+            <div style="font-size:24px">☁️</div>
+            <div style="font-size:14px;font-weight:600;margin-top:8px">云同步</div>
+            <div style="font-size:12px;color:#888">实时数据同步</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🕐</span> 最近活动</div>
+        <div id="recentActivity" style="font-size:13px;color:#888">暂无活动</div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div id="section-users" class="section" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="icon">👥</span> 用户列表</div>
+        <div class="search-bar">
+          <input id="userSearch" placeholder="搜索用户名或手机号..." oninput="filterUsers()">
+          <button class="btn-sm btn-primary" onclick="showAddUser()">+ 添加用户</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>用户</th>
+                <th>手机号</th>
+                <th>状态</th>
+                <th>注册时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chats -->
+    <div id="section-chats" class="section" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="icon">💬</span> 聊天会话</div>
+        <div class="search-bar">
+          <input id="chatSearch" placeholder="搜索聊天内容..." oninput="filterChats()">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>会话</th>
+                <th>类型</th>
+                <th>最后消息</th>
+                <th>消息数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="chatsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="section-settings" class="section" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> 系统设置</div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">🔐 管理员设置</div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">修改管理员密码</div>
+              <div class="settings-desc">更改管理员登录密码</div>
+            </div>
+            <button class="btn-sm btn-warning" onclick="showChangePwd()">修改</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">👥 用户管理设置</div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">允许注册</div>
+              <div class="settings-desc">允许新用户注册账号</div>
+            </div>
+            <button class="toggle active" id="toggleRegister" onclick="toggleSetting('allowRegister')"></button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">强制实名</div>
+              <div class="settings-desc">要求用户使用真实手机号</div>
+            </div>
+            <button class="toggle active" id="toggleRealName" onclick="toggleSetting('requireRealName')"></button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">💬 聊天设置</div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">允许私聊</div>
+              <div class="settings-desc">允许用户之间私聊</div>
+            </div>
+            <button class="toggle active" id="togglePrivate" onclick="toggleSetting('allowPrivateChat')"></button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">允许群聊</div>
+              <div class="settings-desc">允许用户创建群组</div>
+            </div>
+            <button class="toggle active" id="toggleGroup" onclick="toggleSetting('allowGroupChat')"></button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">允许发送图片</div>
+              <div class="settings-desc">允许用户在聊天中发送图片</div>
+            </div>
+            <button class="toggle active" id="toggleImage" onclick="toggleSetting('allowImage')"></button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">聊天记录保留</div>
+              <div class="settings-desc">设置聊天消息保留天数</div>
+            </div>
+            <select class="form-input" style="width:auto" id="msgRetention" onchange="setRetention()">
+              <option value="7">7天</option>
+              <option value="30" selected>30天</option>
+              <option value="90">90天</option>
+              <option value="365">1年</option>
+              <option value="0">永久保留</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">🔒 安全设置</div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">XSS 防护</div>
+              <div class="settings-desc">防止跨站脚本攻击</div>
+            </div>
+            <button class="toggle active" disabled>🟢</button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">数据加密</div>
+              <div class="settings-desc">本地数据加密存储</div>
+            </div>
+            <button class="toggle active" disabled>🟢</button>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">敏感词过滤</div>
+              <div class="settings-desc">自动过滤聊天中的敏感词</div>
+            </div>
+            <button class="toggle" id="toggleFilter" onclick="toggleSetting('sensitiveFilter')">🔘</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-title">📱 应用信息</div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">应用名称</div>
+              <div class="settings-desc">彩虹桥</div>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">版本</div>
+              <div class="settings-desc">v1.0.0</div>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-info">
+              <div class="settings-name">开发者</div>
+              <div class="settings-desc">qclaw 小助手</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="addUserModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">添加用户</div>
+    <div class="form-group">
+      <label class="form-label">用户名</label>
+      <input class="form-input" id="newUserName" placeholder="输入用户名">
+    </div>
+    <div class="form-group">
+      <label class="form-label">手机号</label>
+      <input class="form-input" id="newUserPhone" placeholder="输入手机号">
+    </div>
+    <div class="form-group">
+      <label class="form-label">初始密码</label>
+      <input class="form-input" id="newUserPwd" placeholder="设置密码">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('addUserModal')">取消</button>
+      <button class="modal-btn primary" onclick="addUser()">添加</button>
+    </div>
+  </div>
+</div>
+
+<div id="editUserModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">编辑用户</div>
+    <input type="hidden" id="editUserName">
+    <div class="form-group">
+      <label class="form-label">手机号</label>
+      <input class="form-input" id="editUserPhone" placeholder="输入手机号">
+    </div>
+    <div class="form-group">
+      <label class="form-label">新密码（留空不修改）</label>
+      <input class="form-input" id="editUserPwd" placeholder="输入新密码">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('editUserModal')">取消</button>
+      <button class="modal-btn primary" onclick="saveUser()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="resetPwdModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">重置密码</div>
+    <input type="hidden" id="resetPwdUser">
+    <div class="form-group">
+      <label class="form-label">新密码</label>
+      <input class="form-input" id="resetPwdNew" placeholder="输入新密码">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('resetPwdModal')">取消</button>
+      <button class="modal-btn primary" onclick="doResetPwd()">重置</button>
+    </div>
+  </div>
+</div>
+
+<div id="changePwdModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title">修改管理员密码</div>
+    <div class="form-group">
+      <label class="form-label">当前密码</label>
+      <input class="form-input" id="curAdminPwd" type="password" placeholder="输入当前密码">
+    </div>
+    <div class="form-group">
+      <label class="form-label">新密码</label>
+      <input class="form-input" id="newAdminPwd" type="password" placeholder="输入新密码">
+    </div>
+    <div class="form-group">
+      <label class="form-label">确认新密码</label>
+      <input class="form-input" id="newAdminPwd2" type="password" placeholder="再次输入新密码">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('changePwdModal')">取消</button>
+      <button class="modal-btn primary" onclick="doChangeAdminPwd()">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<div id="chatDetailModal" class="modal">
+  <div class="modal-content" style="max-width:600px">
+    <div class="modal-title" id="chatDetailTitle">聊天详情</div>
+    <div class="chat-preview" id="chatDetailContent"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('chatDetailModal')">关闭</button>
+      <button class="modal-btn danger" onclick="clearChatHistory()">清空记录</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal">
+  <div class="modal-content" style="max-width:360px">
+    <div class="modal-title" id="confirmTitle">确认操作</div>
+    <p id="confirmMsg" style="margin:16px 0;font-size:14px;color:#666"></p>
+    <div class="modal-buttons">
+      <button class="modal-btn secondary" onclick="closeModal('confirmModal')">取消</button>
+      <button class="modal-btn primary" id="confirmBtn" onclick="doConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
